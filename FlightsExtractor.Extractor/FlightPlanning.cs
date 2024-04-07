@@ -1,17 +1,26 @@
-namespace FlightsExtractor.Extractor;
+using System.Text.RegularExpressions;
 
+namespace FlightsExtractor.Extractor;
 public record FlightPlanning(IEnumerable<Flight> Flights);
 public record Flight(OperationalFlightPlan OperationalFlightPlan);
 public record OperationalFlightPlan(
     FlightNumber FlightNumber,
     DateOnly FlightDate);
 
-public record FlightNumber(string Number);
+public partial record FlightNumber(string Number)
+{
+    public static Result<FlightNumber> Create(string value)
+    {
+        if (!MyRegex().IsMatch(value))
+            return Error<FlightNumber>(InvalidFormat("Flight number must be in format [AA0000]"));
+
+        return Ok(new FlightNumber(value));
+    }
+
+    [GeneratedRegex(@"[A-Z]{2}\d{1,4}")]
+    private static partial Regex MyRegex();
+}
 
 public class FileDoesNotExistException : Exception;
 public class InvalidPdfException(string message, Exception inner) : Exception(message, inner);
-
-public abstract class InvalidPdfStructureException(Exception? inner = default) : Exception(string.Empty, inner);
-public class MissingOperationalFlightPlanOrCrewBriefingException : InvalidPdfStructureException;
-public class MissingFlightNumberException(Exception inner) : InvalidPdfStructureException(inner);
-public class MissingFlightDateException(Exception inner) : InvalidPdfStructureException(inner);
+public class InvalidPdfStructureException(string message) : Exception(message);

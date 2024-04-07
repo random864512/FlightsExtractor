@@ -1,23 +1,51 @@
-﻿namespace FlightsExtractor.Extractor;
+﻿using System.Collections.Immutable;
+using UglyToad.PdfPig;
+
+namespace FlightsExtractor.Extractor;
 
 public interface IFlightPlanningExtractor
 {
     FlightPlanning Extract(FileInfo file);
 }
 
-public partial class FlightPlanningExtractor : IFlightPlanningExtractor
+internal class FlightPlanningExtractor : IFlightPlanningExtractor
 {
+    private readonly BriefingParser crewBriefingParser;
+    private readonly PlanParser operationalFlightPlanParser;
+
+    public FlightPlanningExtractor()
+    {
+        crewBriefingParser = new BriefingParser();
+        operationalFlightPlanParser = new PlanParser();
+    }
+
     public FlightPlanning Extract(FileInfo file)
     {
-        using var flightsPlanningDocument = FlightPlanningDocument.Create(file);
-        var flights = flightsPlanningDocument.GetFlights();
+        if (!file.Exists)
+            throw new FileDoesNotExistException();
 
-        return new FlightPlanning(flights.Select(flight =>
-            new Flight(
-                new OperationalFlightPlan(
-                    new FlightNumber(flight.OperationalFlightPlan.FlightNumber()),
-                    flight.OperationalFlightPlan.FlightDate()
-                )
-            )));
+        try
+        {
+            using var pdf = PdfDocument.Open(file.FullName);
+            var pages = pdf.GetPages().Select(page => crewBriefingParser.Parse(page) as DocPage ?? operationalFlightPlanParser.Parse(page)).Where(x => x is not null);
+
+            if (pages.OfType<PlanPage>().Count() != pages.OfType<BriefingPage>().Count())
+                throw new InvalidPdfStructureException("Missing operational flight plan or crew briefing");
+
+            var flights = pages.OfType<PlanPage>().Zip(pages.OfType<BriefingPage>(), (plan, briefing) => (plan, briefing)).ToImmutableList();
+
+            return new FlightPlanning(flights.Select(flight =>
+                new Flight(
+                    new OperationalFlightPlan(
+                        flight.plan.FlightNumber,
+                        flight.plan.FlightDate
+                    )
+                )));
+        }
+        catch (Exception e)
+        {
+            throw new InvalidPdfException("PDF cannot be opened, it may be corrupted or in incorrect format.", e);
+        }
     }
+
 }
