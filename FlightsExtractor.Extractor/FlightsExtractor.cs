@@ -1,15 +1,27 @@
-﻿namespace FlightsExtractor.Extractor;
+﻿using System.Collections.Immutable;
+using System.Text.RegularExpressions;
+using UglyToad.PdfPig;
+
+namespace FlightsExtractor.Extractor;
 
 public interface IFlightsExtractor
 {
-    Task<Document> ExtractAsync(FileInfo file);
+    Document Extract(FileInfo file);
 }
 
-public class FlightsExtractor : IFlightsExtractor
+public partial class FlightsExtractor : IFlightsExtractor
 {
-    public async Task<Document> ExtractAsync(FileInfo file)
+    public Document Extract(FileInfo file)
     {
-        await Task.CompletedTask;
-        throw new NotImplementedException();
+        using var pdf = PdfDocument.Open(file.FullName);
+        var pages = pdf.GetPages();
+
+        var operationalFlightPlans = pages.Where(x => x.Text.Contains("Operational Flight Plan"));
+
+        return new Document(operationalFlightPlans.Select(plan => new Flight(new OperationalFlightPlan(new FlightNumber(MyRegex().Match(plan.Text).Groups["FlightNumber"].Value)))).ToImmutableList());
     }
+
+
+    [GeneratedRegex(@"FltNr:\s*(?<FlightNumber>[A-Z]{2}\d{1,4})", RegexOptions.Compiled)]
+    private static partial Regex MyRegex();
 }
