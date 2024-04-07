@@ -5,15 +5,15 @@ namespace FlightsExtractor.Extractor;
 
 internal sealed partial class FlightPlanningDocument(PdfDocument document) : IDisposable
 {
-    public IEnumerable<(OperationalFlightPlanPage OperationalFlightPlan, CrewBriefingPage crewBriefing)> GetFlights()
+    public ImmutableList<(OperationalFlightPlanPage OperationalFlightPlan, CrewBriefingPage crewBriefing)> GetFlights()
     {
         var operationalFlightPlanPages = document.GetPages().Where(OperationalFlightPlanPage.IsOperationalFlightPlanPage).Select(page => new OperationalFlightPlanPage(page)).ToImmutableList();
         var crewBriefingPages = document.GetPages().Where(CrewBriefingPage.IsCrewBriefingPage).Select(page => new CrewBriefingPage(page)).ToImmutableList();
 
         if (operationalFlightPlanPages.Count() != crewBriefingPages.Count())
-            throw new InvalidPdfStructureException("Inconsistency between operational flight plan and crew briefing number detected");
+            throw new MissingOperationalFlightPlanOrCrewBriefingException();
 
-        return operationalFlightPlanPages.Zip(crewBriefingPages, (plan, briefing) => (plan, briefing));
+        return operationalFlightPlanPages.Zip(crewBriefingPages, (plan, briefing) => (plan, briefing)).ToImmutableList();
     }
 
     public static FlightPlanningDocument Create(FileInfo file)

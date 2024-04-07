@@ -15,7 +15,8 @@ public partial class FlightPlanningExtractor : IFlightPlanningExtractor
         return new FlightPlanning(flights.Select(flight =>
             new Flight(
                 new OperationalFlightPlan(
-                    new FlightNumber(flight.OperationalFlightPlan.FlightNumber())
+                    new FlightNumber(flight.OperationalFlightPlan.FlightNumber()),
+                    flight.OperationalFlightPlan.FlightDate()
                 )
             )));
     }

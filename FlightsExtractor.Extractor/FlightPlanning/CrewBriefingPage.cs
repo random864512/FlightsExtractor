@@ -3,7 +3,7 @@ using UglyToad.PdfPig.Content;
 
 namespace FlightsExtractor.Extractor;
 
-public partial class CrewBriefingPage(Page Page)
+internal partial class CrewBriefingPage(Page Page)
 {
     public static bool IsCrewBriefingPage(Page page) => FlightCrewBriefingRegex().IsMatch(string.Join(" ", page.GetWords())) && FirstPageRegex().IsMatch(string.Join(" ", page.GetWords()));
 
