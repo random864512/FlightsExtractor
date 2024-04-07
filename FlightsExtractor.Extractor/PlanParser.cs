@@ -13,7 +13,9 @@ internal partial class PlanParser
             return new PlanPage(
                 ParseFlightNumber(page),
                 ParseFlightDate(page),
-                ParseAircraftRegistration(page)
+                ParseAircraftRegistration(page),
+                ParseFrom(page),
+                ParseTo(page)
             );
 
         return default;
@@ -40,4 +42,10 @@ internal partial class PlanParser
 
     public static Result<AircraftRegistration> ParseAircraftRegistration(Page page) =>
         page.GetWordAfter("Reg.:").Map(AircraftRegistration.Create);
+
+    public static Result<ICAOAirportCode> ParseFrom(Page page) =>
+        page.GetWordAfter("From:").Map(ICAOAirportCode.Create);
+
+    public static Result<ICAOAirportCode> ParseTo(Page page) =>
+        page.GetWordAfter("To:").Map(ICAOAirportCode.Create);
 }

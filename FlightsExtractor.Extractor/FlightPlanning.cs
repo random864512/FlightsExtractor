@@ -6,7 +6,8 @@ public record Flight(OperationalFlightPlan OperationalFlightPlan);
 public record OperationalFlightPlan(
     FlightNumber FlightNumber,
     DateOnly FlightDate,
-    Result<AircraftRegistration> AircraftRegistration);
+    Result<AircraftRegistration> AircraftRegistration,
+    Route Route);
 
 public partial record FlightNumber(string Number)
 {
@@ -27,16 +28,32 @@ public partial record AircraftRegistration(string Value)
 
     public static Result<AircraftRegistration> Create(string value)
     {
-        if (AircraftRegistrationRegex().IsMatch(value))
-            return Error<AircraftRegistration>(InvalidFormat($"Aircraft must be in correct format, but has value [{value}]"));
+        if (!AircraftRegistrationRegex().IsMatch(value))
+            return Error<AircraftRegistration>(InvalidFormat($"Aircraft registration must be in correct format, but has value [{value}]"));
 
         return Ok(new AircraftRegistration(value));
     }
 
 
-    // https://gist.github.com/eightyknots/4372d1166a192d5e9754?permalink_comment_id=4469552
-    [GeneratedRegex(@"^[A-Z]-[A-Z]{4}|[A-Z]{2}-[A-Z]{3}|N[0-9]{1,5}[A-Z]{0,2}$")]
+    // TODO: Aircraft registration regex should not be naive
+    [GeneratedRegex(@"^[A-Z]{2,10}$")]
     private static partial Regex AircraftRegistrationRegex();
+}
+public partial record Route(Result<ICAOAirportCode> From, Result<ICAOAirportCode> To);
+
+public partial record ICAOAirportCode(string Value)
+{
+    public static Result<ICAOAirportCode> Create(string value)
+    {
+        if (!ICAOAirportCodeRegex().IsMatch(value))
+            return Error<ICAOAirportCode>(InvalidFormat($"ICAO Airport must be in correct format, but has value [{value}]"));
+
+        return Ok(new ICAOAirportCode(value));
+    }
+
+    // https://en.wikipedia.org/wiki/ICAO_airport_code
+    [GeneratedRegex(@"^[A-Z]{4}$")]
+    private static partial Regex ICAOAirportCodeRegex();
 }
 
 public class FileDoesNotExistException : Exception;

@@ -23,19 +23,27 @@ public class FlightPlanningExtractorTests
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1612"),
                     new DateOnly(2024,03,19),
-                    Ok(new AircraftRegistration("HBJVY")))),
+                    Ok(new AircraftRegistration("HBJVY")),
+                    new Route(Ok(new ICAOAirportCode("LSZH")), Ok(new ICAOAirportCode("LIMC")))
+                )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1613"),
                     new DateOnly(2024,03,19),
-                    Ok(new AircraftRegistration("HBJVY")))),
+                    Ok(new AircraftRegistration("HBJVY")),
+                    new Route(Ok(new ICAOAirportCode("LIMC")), Ok(new ICAOAirportCode("LSZH")))
+                )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1072"),
-                    new DateOnly(2024,03,19),
-                    Ok(new AircraftRegistration("HBJVN")))),
+                    new DateOnly(2024, 03, 19),
+                    Ok(new AircraftRegistration("HBJVN")),
+                    new Route(Ok(new ICAOAirportCode("LSZH")), Ok(new ICAOAirportCode("EDDF")))
+                )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1073"),
-                    new DateOnly(2024,03,19),
-                    Ok(new AircraftRegistration("HBJVN"))))
+                    new DateOnly(2024, 03, 19),
+                    Ok(new AircraftRegistration("HBJVN")),
+                    new Route(Ok(new ICAOAirportCode("EDDF")), Ok(new ICAOAirportCode("LSZH")))
+                ))
             ]));
     }
 }
