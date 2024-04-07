@@ -38,7 +38,8 @@ internal class FlightPlanningExtractor : IFlightPlanningExtractor
                 new Flight(
                     new OperationalFlightPlan(
                         flight.plan.FlightNumber,
-                        flight.plan.FlightDate
+                        flight.plan.FlightDate,
+                        flight.plan.AircraftRegistration
                     )
                 )));
         }

@@ -6,5 +6,6 @@ public record BriefingPage : DocPage;
 
 internal record PlanPage(
     FlightNumber FlightNumber,
-    DateOnly FlightDate
+    DateOnly FlightDate,
+    Result<AircraftRegistration> AircraftRegistration
 ) : DocPage;

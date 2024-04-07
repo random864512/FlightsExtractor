@@ -12,7 +12,8 @@ internal partial class PlanParser
         if (page.Text.Contains("Operational Flight Plan"))
             return new PlanPage(
                 ParseFlightNumber(page),
-                ParseFlightDate(page)
+                ParseFlightDate(page),
+                ParseAircraftRegistration(page)
             );
 
         return default;
@@ -36,4 +37,7 @@ internal partial class PlanParser
 
         throw new FlightDateIsMissingException();
     }
+
+    public static Result<AircraftRegistration> ParseAircraftRegistration(Page page) =>
+        page.GetWordAfter("Reg.:").Map(AircraftRegistration.Create);
 }
