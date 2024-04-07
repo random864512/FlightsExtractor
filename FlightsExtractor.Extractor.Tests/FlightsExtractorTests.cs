@@ -3,22 +3,22 @@
 namespace FlightsExtractor.Extractor.Tests;
 
 [TestFixture]
-public class FlightsExtractorTests
+public class FlightPlanningExtractorTests
 {
     [Test]
-    public void ShouldExtractFlightsData()
+    public void ShouldExtractFlightPlanning()
     {
         // Arrange
-        var sut = new FlightsExtractor();
+        var sut = new FlightPlanningExtractor();
         var file = new FileInfo("SampleFile.pdf");
 
-        // Act && Assert
+        // Act
         var result = sut.Extract(file);
 
-        //Assert
+        // Assert
         result
             .Should()
-            .BeEquivalentTo(new Document([
+            .BeEquivalentTo(new FlightPlanning([
                 new Flight(new OperationalFlightPlan(new FlightNumber("LX1612"))),
                 new Flight(new OperationalFlightPlan(new FlightNumber("LX1613"))),
                 new Flight(new OperationalFlightPlan(new FlightNumber("LX1072"))),
