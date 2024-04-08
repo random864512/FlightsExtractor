@@ -10,7 +10,13 @@ public record OperationalFlightPlan(
     Route Route,
     Result<ICAOAirportCode> AlternativeAirdrom1,
     Result<ICAOAirportCode> AlternativeAirdrom2,
-    Result<ATCCallSign> ATCCallSign);
+    Result<ATCCallSign> ATCCallSign,
+    Result<TimeSpan> TimeToDestination,
+    Result<decimal> FuelToDestination,
+    Result<TimeSpan> TimeToAlternate,
+    Result<decimal> FuelToAlternate,
+    Result<decimal> MinimumFuelRequired
+);
 
 public partial record FlightNumber(string Number)
 {

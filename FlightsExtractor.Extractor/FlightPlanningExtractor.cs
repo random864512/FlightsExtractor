@@ -7,9 +7,7 @@ public interface IFlightPlanningExtractor
     FlightPlanning Extract(FileInfo file);
 }
 
-public class FileDoesNotExistException : Exception;
 public class FlightPlanningValidationException(string message) : Exception(message);
-
 
 internal class FlightPlanningExtractor(Parser parser) : IFlightPlanningExtractor
 {
@@ -26,7 +24,12 @@ internal class FlightPlanningExtractor(Parser parser) : IFlightPlanningExtractor
                     new Route(plan.From, plan.To),
                     plan.AlternativeAirdrom1,
                     plan.AlternativeAirdrom2,
-                    plan.ATCCallSign
+                    plan.ATCCallSign,
+                    plan.TimeToDestination,
+                    plan.FuelToDestination,
+                    plan.TimeToAlternate,
+                    plan.FuelToAlternate,
+                    plan.MinimumFuelRequired
                 )
             )));
     }
