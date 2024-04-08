@@ -9,5 +9,7 @@ internal record PlanPage(
     DateOnly FlightDate,
     Result<AircraftRegistration> AircraftRegistration,
     Result<ICAOAirportCode> From,
-    Result<ICAOAirportCode> To
+    Result<ICAOAirportCode> To,
+    Result<ICAOAirportCode> AlternativeAirdrom1,
+    Result<ICAOAirportCode> AlternativeAirdrom2
 ) : DocPage;

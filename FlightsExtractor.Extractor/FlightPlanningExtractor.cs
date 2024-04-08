@@ -40,7 +40,9 @@ internal class FlightPlanningExtractor : IFlightPlanningExtractor
                         flight.plan.FlightNumber,
                         flight.plan.FlightDate,
                         flight.plan.AircraftRegistration,
-                        new Route(flight.plan.From, flight.plan.To)
+                        new Route(flight.plan.From, flight.plan.To),
+                        flight.plan.AlternativeAirdrom1,
+                        flight.plan.AlternativeAirdrom2
                     )
                 )));
         }

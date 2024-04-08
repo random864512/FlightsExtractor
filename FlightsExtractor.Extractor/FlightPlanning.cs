@@ -7,7 +7,9 @@ public record OperationalFlightPlan(
     FlightNumber FlightNumber,
     DateOnly FlightDate,
     Result<AircraftRegistration> AircraftRegistration,
-    Route Route);
+    Route Route,
+    Result<ICAOAirportCode> AlternativeAirdrom1,
+    Result<ICAOAirportCode> AlternativeAirdrom2);
 
 public partial record FlightNumber(string Number)
 {
@@ -16,7 +18,7 @@ public partial record FlightNumber(string Number)
         if (!FlightNumberRegex().IsMatch(value))
             return Error<FlightNumber>(InvalidFormat($"Flight number must be in format [AA0000], but has value {value}"));
 
-        return Ok(new FlightNumber(value));
+        return new FlightNumber(value);
     }
 
     [GeneratedRegex(@"^[A-Z]{2}\d{1,4}$")]
@@ -31,7 +33,7 @@ public partial record AircraftRegistration(string Value)
         if (!AircraftRegistrationRegex().IsMatch(value))
             return Error<AircraftRegistration>(InvalidFormat($"Aircraft registration must be in correct format, but has value [{value}]"));
 
-        return Ok(new AircraftRegistration(value));
+        return new AircraftRegistration(value);
     }
 
 
@@ -48,7 +50,7 @@ public partial record ICAOAirportCode(string Value)
         if (!ICAOAirportCodeRegex().IsMatch(value))
             return Error<ICAOAirportCode>(InvalidFormat($"ICAO Airport must be in correct format, but has value [{value}]"));
 
-        return Ok(new ICAOAirportCode(value));
+        return new ICAOAirportCode(value);
     }
 
     // https://en.wikipedia.org/wiki/ICAO_airport_code
