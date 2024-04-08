@@ -25,7 +25,8 @@ internal class FlightPlanningExtractor(Parser parser) : IFlightPlanningExtractor
                     plan.AircraftRegistration,
                     new Route(plan.From, plan.To),
                     plan.AlternativeAirdrom1,
-                    plan.AlternativeAirdrom2
+                    plan.AlternativeAirdrom2,
+                    plan.ATCCallSign
                 )
             )));
     }

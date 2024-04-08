@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using UglyToad.PdfPig;
-using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace FlightsExtractor.Extractor.Tests;
 
@@ -29,7 +28,8 @@ public class FlightPlanningExtractorTests
                     Ok(new AircraftRegistration("HBJVY")),
                     new Route(Ok(new ICAOAirportCode("LSZH")), Ok(new ICAOAirportCode("LIMC"))),
                     Ok(new ICAOAirportCode("LIML")),
-                    Error<ICAOAirportCode>(string.Empty)
+                    Error<ICAOAirportCode>(string.Empty),
+                    Ok(new ATCCallSign("SWR612Q"))
                 )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1613"),
@@ -37,7 +37,8 @@ public class FlightPlanningExtractorTests
                     Ok(new AircraftRegistration("HBJVY")),
                     new Route(Ok(new ICAOAirportCode("LIMC")), Ok(new ICAOAirportCode("LSZH"))),
                     Ok(new ICAOAirportCode("LFSB")),
-                    Error<ICAOAirportCode>(string.Empty)
+                    Error<ICAOAirportCode>(string.Empty),
+                    Ok(new ATCCallSign("SWR2TM"))
                 )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1072"),
@@ -45,7 +46,8 @@ public class FlightPlanningExtractorTests
                     Ok(new AircraftRegistration("HBJVN")),
                     new Route(Ok(new ICAOAirportCode("LSZH")), Ok(new ICAOAirportCode("EDDF"))),
                     Ok(new ICAOAirportCode("EDDK")),
-                    Error<ICAOAirportCode>(string.Empty)
+                    Error<ICAOAirportCode>(string.Empty),
+                    Ok(new ATCCallSign("SWR2ET"))
                 )),
                 new Flight(new OperationalFlightPlan(
                     new FlightNumber("LX1073"),
@@ -53,7 +55,8 @@ public class FlightPlanningExtractorTests
                     Ok(new AircraftRegistration("HBJVN")),
                     new Route(Ok(new ICAOAirportCode("EDDF")), Ok(new ICAOAirportCode("LSZH"))),
                     Ok(new ICAOAirportCode("LFSB")),
-                    Error<ICAOAirportCode>(string.Empty)
+                    Error<ICAOAirportCode>(string.Empty),
+                    Ok(new ATCCallSign("SWR890M"))
                 ))
             ]));
     }

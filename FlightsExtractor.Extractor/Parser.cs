@@ -27,7 +27,8 @@ internal partial class Parser
                     ParseFrom(text),
                     ParseTo(text),
                     ParseAlternativeAirdrom1(text),
-                    ParseAlternativeAirdrom2(text)
+                    ParseAlternativeAirdrom2(text),
+                    ParseATCCallSign(text)
                 );
         }
     }
@@ -119,4 +120,14 @@ internal partial class Parser
 
     [GeneratedRegex(@"ALTN1:\s{0,10}(?<Value>\S+?)\s+")]
     private static partial Regex AlternativeAirdrom1Regex();
+
+    private static Result<ATCCallSign> ParseATCCallSign(string text)
+    {
+        var match = Regex.Match(text, @"ATC:\s{1,10}(?<Value>\S+)\s+");
+
+        if (!match.Success)
+            return Error<ATCCallSign>(string.Empty);
+
+        return new ATCCallSign(match.Groups["Value"].Value);
+    }
 }

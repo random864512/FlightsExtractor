@@ -11,5 +11,6 @@ internal record OperationalFlightPage(
     Result<ICAOAirportCode> From,
     Result<ICAOAirportCode> To,
     Result<ICAOAirportCode> AlternativeAirdrom1,
-    Result<ICAOAirportCode> AlternativeAirdrom2
+    Result<ICAOAirportCode> AlternativeAirdrom2,
+    Result<ATCCallSign> ATCCallSign
 ) : Page;

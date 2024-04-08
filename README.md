@@ -7,3 +7,4 @@
 
 ## ToDo
 - [ ] fix naive Airport registration regex
+- [ ] ATC format validation

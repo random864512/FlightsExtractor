@@ -9,7 +9,8 @@ public record OperationalFlightPlan(
     Result<AircraftRegistration> AircraftRegistration,
     Route Route,
     Result<ICAOAirportCode> AlternativeAirdrom1,
-    Result<ICAOAirportCode> AlternativeAirdrom2);
+    Result<ICAOAirportCode> AlternativeAirdrom2,
+    Result<ATCCallSign> ATCCallSign);
 
 public partial record FlightNumber(string Number)
 {
@@ -42,6 +43,8 @@ public partial record AircraftRegistration(string Value)
     private static partial Regex AircraftRegistrationRegex();
 }
 public partial record Route(Result<ICAOAirportCode> From, Result<ICAOAirportCode> To);
+
+public partial record ATCCallSign(string Value);
 
 public partial record ICAOAirportCode(string Value)
 {
