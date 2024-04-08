@@ -1,57 +1,58 @@
 using System.Text.RegularExpressions;
-using UglyToad.PdfPig.Content;
+using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace FlightsExtractor.Extractor;
 
-internal class FlightNumberIsMissingException : Exception;
-internal class FlightDateIsMissingException : Exception;
+internal class ParserException(Exception innerException) : Exception(default, innerException);
 
-internal partial class PlanParser
+internal partial class Parser
 {
-    public PlanPage? Parse(Page page)
+    public IEnumerable<Page> Parse(FileInfo file)
     {
-        var text = ContentOrderTextExtractor.GetText(page);
+        if (!file.Exists)
+            throw new FileDoesNotExistException();
 
-        if (page.Text.Contains("Operational Flight Plan"))
-            return new PlanPage(
-                ParseFlightNumber(text),
-                ParseFlightDate(text),
-                ParseAircraftRegistration(text),
-                ParseFrom(text),
-                ParseTo(text),
-                ParseAlternativeAirdrom1(text),
-                ParseAlternativeAirdrom2(text)
-            );
+        using var document = PdfDocument.Open(file.FullName);
 
-        return default;
+        foreach (var page in document.GetPages())
+        {
+            var text = ContentOrderTextExtractor.GetText(page);
+
+            if (page.Text.Contains("Operational Flight Plan"))
+                yield return new OperationalFlightPage(
+                    ParseFlightNumber(text),
+                    ParseFlightDate(text),
+                    ParseAircraftRegistration(text),
+                    ParseFrom(text),
+                    ParseTo(text),
+                    ParseAlternativeAirdrom1(text),
+                    ParseAlternativeAirdrom2(text)
+                );
+        }
     }
 
-    public static FlightNumber ParseFlightNumber(string text)
+    private static Result<FlightNumber> ParseFlightNumber(string text)
     {
         var match = FlightNumberRegex().Match(text);
         if (!match.Success)
-            throw new FlightNumberIsMissingException();
+            return Error<FlightNumber>(string.Empty);
 
-        var result = FlightNumber.Create(match.Groups["Value"].Value);
-        if (!result.IsSuccess)
-            throw new FlightNumberIsMissingException();
-
-        return result.Value!;
+        return FlightNumber.Create(match.Groups["Value"].Value);
     }
 
     [GeneratedRegex(@"FltNr:\s{1,10}(?<Value>\S+?)\s+")]
     private static partial Regex FlightNumberRegex();
 
-    public static DateOnly ParseFlightDate(string text)
+    private static Result<DateOnly> ParseFlightDate(string text)
     {
         var match = FlightDateRegex().Match(text);
 
         if (!match.Success)
-            throw new FlightDateIsMissingException();
+            return Error<DateOnly>(string.Empty);
 
         if (!DateOnly.TryParseExact(match.Groups["Value"].Value, "ddMMMyy", out var parsedDate))
-            throw new FlightDateIsMissingException();
+            return Error<DateOnly>(string.Empty);
 
         return parsedDate;
     }
@@ -59,7 +60,7 @@ internal partial class PlanParser
     [GeneratedRegex(@"Date:\s{1,10}(?<Value>\S+?)\s+")]
     private static partial Regex FlightDateRegex();
 
-    public static Result<AircraftRegistration> ParseAircraftRegistration(string text)
+    private static Result<AircraftRegistration> ParseAircraftRegistration(string text)
     {
         var match = AircraftRegistrationRegex().Match(text);
         if (!match.Success)
@@ -71,7 +72,7 @@ internal partial class PlanParser
     [GeneratedRegex(@"Reg.:\s{1,10}(?<Value>\S+?)\s+")]
     private static partial Regex AircraftRegistrationRegex();
 
-    public static Result<ICAOAirportCode> ParseFrom(string text)
+    private static Result<ICAOAirportCode> ParseFrom(string text)
     {
         var match = FromRegex().Match(text);
         if (!match.Success)
@@ -83,7 +84,7 @@ internal partial class PlanParser
     [GeneratedRegex(@"From:\s{1,10}(?<Value>\S+?)\s+")]
     private static partial Regex FromRegex();
 
-    public static Result<ICAOAirportCode> ParseTo(string text)
+    private static Result<ICAOAirportCode> ParseTo(string text)
     {
         var match = ToRegex().Match(text);
         if (!match.Success)
@@ -95,7 +96,7 @@ internal partial class PlanParser
     [GeneratedRegex(@"To:\s{0,10}(?<Value>\S+?)\s+")]
     private static partial Regex ToRegex();
 
-    public static Result<ICAOAirportCode> ParseAlternativeAirdrom1(string text)
+    private static Result<ICAOAirportCode> ParseAlternativeAirdrom1(string text)
     {
         var match = AlternativeAirdrom1Regex().Match(text);
         if (!match.Success)
@@ -107,7 +108,7 @@ internal partial class PlanParser
     [GeneratedRegex(@"ALTN2:\s{0,10}(?<Value>\S+?)\s+")]
     private static partial Regex AlternativeAirdrom2Regex();
 
-    public static Result<ICAOAirportCode> ParseAlternativeAirdrom2(string text)
+    private static Result<ICAOAirportCode> ParseAlternativeAirdrom2(string text)
     {
         var match = AlternativeAirdrom2Regex().Match(text);
         if (!match.Success)

@@ -15,4 +15,8 @@
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Using Include="FlightsExtractor.Extractor.Result" Static="True"/>
+  </ItemGroup>
+
 </Project>

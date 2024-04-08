@@ -16,7 +16,7 @@ public partial record FlightNumber(string Number)
     public static Result<FlightNumber> Create(string value)
     {
         if (!FlightNumberRegex().IsMatch(value))
-            return Error<FlightNumber>(InvalidFormat($"Flight number must be in format [AA0000], but has value {value}"));
+            return Error<FlightNumber>($"Flight number must be in format [AA0000], but has value {value}");
 
         return new FlightNumber(value);
     }
@@ -31,7 +31,7 @@ public partial record AircraftRegistration(string Value)
     public static Result<AircraftRegistration> Create(string value)
     {
         if (!AircraftRegistrationRegex().IsMatch(value))
-            return Error<AircraftRegistration>(InvalidFormat($"Aircraft registration must be in correct format, but has value [{value}]"));
+            return Error<AircraftRegistration>($"Aircraft registration must be in correct format, but has value [{value}]");
 
         return new AircraftRegistration(value);
     }
@@ -48,7 +48,7 @@ public partial record ICAOAirportCode(string Value)
     public static Result<ICAOAirportCode> Create(string value)
     {
         if (!ICAOAirportCodeRegex().IsMatch(value))
-            return Error<ICAOAirportCode>(InvalidFormat($"ICAO Airport must be in correct format, but has value [{value}]"));
+            return Error<ICAOAirportCode>($"ICAO Airport must be in correct format, but has value [{value}]");
 
         return new ICAOAirportCode(value);
     }
@@ -57,7 +57,3 @@ public partial record ICAOAirportCode(string Value)
     [GeneratedRegex(@"^[A-Z]{4}$")]
     private static partial Regex ICAOAirportCodeRegex();
 }
-
-public class FileDoesNotExistException : Exception;
-public class InvalidPdfException(string message, Exception inner) : Exception(message, inner);
-public class InvalidPdfStructureException(string message) : Exception(message);

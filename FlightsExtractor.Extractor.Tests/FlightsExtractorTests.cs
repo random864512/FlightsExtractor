@@ -13,7 +13,7 @@ public class FlightPlanningExtractorTests
         using var pdf = PdfDocument.Open("SampleFile.pdf");
 
         // Arrange
-        var sut = new FlightPlanningExtractor();
+        var sut = new FlightPlanningExtractor(new Parser());
         var file = new FileInfo("SampleFile.pdf");
 
         // Act

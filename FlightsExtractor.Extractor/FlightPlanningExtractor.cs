@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using UglyToad.PdfPig;
 
 namespace FlightsExtractor.Extractor;
 
@@ -8,48 +7,26 @@ public interface IFlightPlanningExtractor
     FlightPlanning Extract(FileInfo file);
 }
 
-internal class FlightPlanningExtractor : IFlightPlanningExtractor
+public class FileDoesNotExistException : Exception;
+public class FlightPlanningValidationException(string message) : Exception(message);
+
+
+internal class FlightPlanningExtractor(Parser parser) : IFlightPlanningExtractor
 {
-    private readonly BriefingParser crewBriefingParser;
-    private readonly PlanParser operationalFlightPlanParser;
-
-    public FlightPlanningExtractor()
-    {
-        crewBriefingParser = new BriefingParser();
-        operationalFlightPlanParser = new PlanParser();
-    }
-
     public FlightPlanning Extract(FileInfo file)
     {
-        if (!file.Exists)
-            throw new FileDoesNotExistException();
+        var pages = parser.Parse(file).ToImmutableList();
 
-        try
-        {
-            using var pdf = PdfDocument.Open(file.FullName);
-            var pages = pdf.GetPages().Select(page => crewBriefingParser.Parse(page) as DocPage ?? operationalFlightPlanParser.Parse(page)).Where(x => x is not null);
-
-            if (pages.OfType<PlanPage>().Count() != pages.OfType<BriefingPage>().Count())
-                throw new InvalidPdfStructureException("Missing operational flight plan or crew briefing");
-
-            var flights = pages.OfType<PlanPage>().Zip(pages.OfType<BriefingPage>(), (plan, briefing) => (plan, briefing)).ToImmutableList();
-
-            return new FlightPlanning(flights.Select(flight =>
-                new Flight(
-                    new OperationalFlightPlan(
-                        flight.plan.FlightNumber,
-                        flight.plan.FlightDate,
-                        flight.plan.AircraftRegistration,
-                        new Route(flight.plan.From, flight.plan.To),
-                        flight.plan.AlternativeAirdrom1,
-                        flight.plan.AlternativeAirdrom2
-                    )
-                )));
-        }
-        catch (Exception e)
-        {
-            throw new InvalidPdfException("PDF cannot be opened, it may be corrupted or in incorrect format.", e);
-        }
+        return new FlightPlanning(pages.OfType<OperationalFlightPage>().Select(plan =>
+            new Flight(
+                new OperationalFlightPlan(
+                    plan.FlightNumber.IsSuccess ? plan.FlightNumber.Value! : throw new FlightPlanningValidationException("Missing flightNumber"),
+                    plan.FlightDate.IsSuccess ? plan.FlightDate.Value! : throw new FlightPlanningValidationException("Missing flight date"),
+                    plan.AircraftRegistration,
+                    new Route(plan.From, plan.To),
+                    plan.AlternativeAirdrom1,
+                    plan.AlternativeAirdrom2
+                )
+            )));
     }
-
 }

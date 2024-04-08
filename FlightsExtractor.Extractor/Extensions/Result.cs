@@ -22,8 +22,3 @@ public class Result<T>(bool isSuccess, T? value, string? error)
 
     public static implicit operator Result<T>(T value) => Ok(value);
 }
-
-public static class ResultExtensions
-{
-
-}
