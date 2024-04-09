@@ -12,13 +12,5 @@ public class Result<T>(bool isSuccess, T? value, string? error)
     public T? Value { get; } = value;
     public string? Error { get; } = error;
 
-    public Result<E> Map<E>(Func<T, Result<E>> map)
-    {
-        if (!IsSuccess)
-            return Error<E>(Error!);
-
-        return map(Value!);
-    }
-
     public static implicit operator Result<T>(T value) => Ok(value);
 }
