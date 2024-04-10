@@ -3,8 +3,20 @@ using UglyToad.PdfPig;
 
 namespace FlightsExtractor.Extractor;
 
+/*
+    public interface representing pdf extractor
+    depending on needs (like passing lib to 3rd parties, public nuget etc.) to completely avoid eventual changes due to implementation details it could look like:
+    public interface IFlightPlanningExtractor : IDisposable, IAsyncDisposable
+    {
+        Task<FlightPlanning> Extract(string file);
+    }
+    to avoid breaking changes in case of library switch in the future
+ */
+
 public interface IFlightPlanningExtractor
 {
+    /// <exception cref="FileDoesNotExistException">When file does not exists</exception>
+    /// <exception cref="FlightPlanningValidationException">When file cannot be parsed due to invalid structure / missing data</exception>
     FlightPlanning Extract(string file);
 }
 

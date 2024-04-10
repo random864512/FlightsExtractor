@@ -1,5 +1,4 @@
 ﻿using FluentAssertions;
-
 namespace FlightsExtractor.Extractor.Tests;
 
 [TestFixture]
@@ -105,4 +104,26 @@ public class FlightPlanningExtractorTests
                 )
             ]));
     }
+
+    [Test]
+    public void ShouldThrowWhenFileDoesNotExist() =>
+    new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
+        .Extract("FileThatDoesNotExists.txt"))
+        .Should()
+        .Throw<FileDoesNotExistException>();
+
+
+    [Test]
+    public void ShouldThrowWhenBriefingPageIsMissing() =>
+        new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
+        .Extract("SampleFileRemovedBriefing.pdf"))
+        .Should()
+        .Throw<FlightPlanningValidationException>();
+
+    [Test]
+    public void ShouldThrowWhenOperationalFlightPlanningPageIsMissing() =>
+        new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
+        .Extract("SampleFileRemovedPlanning.pdf"))
+        .Should()
+        .Throw<FlightPlanningValidationException>();
 }
