@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace FlightsExtractor.Extractor;
 
 public class Result
@@ -6,11 +8,18 @@ public class Result
     public static Result<T> Error<T>(string error) => new(false, default, error);
 }
 
-public class Result<T>(bool isSuccess, T? value, string? error)
+public record Result<T>
 {
-    public bool IsSuccess { get; } = isSuccess;
-    public T? Value { get; } = value;
-    public string? Error { get; } = error;
+    protected internal Result(bool isSuccess, T? value, string? error)
+    {
+        IsSuccess = isSuccess;
+        Value = value;
+        Error = error;
+    }
+
+    public bool IsSuccess { get; }
+    public T? Value { get; }
+    public string? Error { get; }
 
     public static implicit operator Result<T>(T value) => Ok(value);
 }

@@ -5,10 +5,6 @@ using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
 namespace FlightsExtractor.Extractor;
 
-public record Page;
-
-public record CrewBriefingPage : Page;
-
 internal record OperationalFlightPage(
     Result<FlightNumber> FlightNumber,
     Result<DateOnly> FlightDate,
@@ -23,20 +19,12 @@ internal record OperationalFlightPage(
     Result<TimeSpan> TimeToAlternate,
     Result<decimal> FuelToAlternate,
     Result<decimal> MinimumFuelRequired
-) : Page;
+);
 
-public class FileDoesNotExistException : Exception;
-
-
-internal partial class Parser
+internal partial class OperationalFlightPlanningParser
 {
-    public IEnumerable<Page> Parse(FileInfo file)
+    public IEnumerable<OperationalFlightPage> Parse(PdfDocument document)
     {
-        if (!file.Exists)
-            throw new FileDoesNotExistException();
-
-        using var document = PdfDocument.Open(file.FullName);
-
         foreach (var page in document.GetPages())
         {
             var text = ContentOrderTextExtractor.GetText(page);

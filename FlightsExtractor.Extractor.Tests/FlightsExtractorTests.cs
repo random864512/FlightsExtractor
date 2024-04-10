@@ -9,17 +9,16 @@ public class FlightPlanningExtractorTests
     public void ShouldExtractFlightPlanning()
     {
         // Arrange
-        var sut = new FlightPlanningExtractor(new Parser());
-        var file = new FileInfo("SampleFile.pdf");
+        var sut = new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser());
 
         // Act
-        var result = sut.Extract(file);
+        var result = sut.Extract("SampleFile.pdf");
 
         // Assert
         result
             .Should()
             .BeEquivalentTo(new FlightPlanning([
-                new Flight(new OperationalFlightPlan(
+                new Flight(
                     new FlightNumber("LX1612"),
                     new DateOnly(2024,03,19),
                     new AircraftRegistration("HBJVY"),
@@ -31,9 +30,16 @@ public class FlightPlanningExtractorTests
                     new decimal(1.7),
                     TimeSpan.FromMinutes(20),
                     new decimal(0.8),
-                    new decimal(3.6)
-                )),
-                new Flight(new OperationalFlightPlan(
+                    new decimal(3.6),
+                    [
+                        new CrewMember("CMD", "Steve Krebs"),
+                        new CrewMember("COP", "Gregory Gillioz"),
+                        new CrewMember("CAB", "Luisa Quadros Vissotto"),
+                        new CrewMember("CAB", "Rainer Sattler"),
+                        new CrewMember("SEN", "Regine Kathrin Schumacher-Horn")
+                    ]
+                ),
+                new Flight(
                     new FlightNumber("LX1613"),
                     new DateOnly(2024, 03, 19),
                     new AircraftRegistration("HBJVY"),
@@ -45,9 +51,16 @@ public class FlightPlanningExtractorTests
                     new decimal(1.7),
                     TimeSpan.FromMinutes(39),
                     new decimal(1.5),
-                    new decimal(4.3)
-                )),
-                new Flight(new OperationalFlightPlan(
+                    new decimal(4.3),
+                    [
+                        new CrewMember("CMD", "Steve Krebs"),
+                        new CrewMember("COP", "Gregory Gillioz"),
+                        new CrewMember("CAB", "Luisa Quadros Vissotto"),
+                        new CrewMember("CAB", "Rainer Sattler"),
+                        new CrewMember("SEN", "Regine Kathrin Schumacher-Horn")
+                    ]
+                ),
+                new Flight(
                     new FlightNumber("LX1072"),
                     new DateOnly(2024, 03, 19),
                     new AircraftRegistration("HBJVN"),
@@ -59,9 +72,16 @@ public class FlightPlanningExtractorTests
                     new decimal(1.9),
                     TimeSpan.FromMinutes(47),
                     new decimal(1.6),
-                    new decimal(4.6)
-                )),
-                new Flight(new OperationalFlightPlan(
+                    new decimal(4.6),
+                    [
+                        new CrewMember("CMD", "Werner Trütsch"),
+                        new CrewMember("COP", "Luca Andrea Marchetti"),
+                        new CrewMember("CAB", "Helen Meier"),
+                        new CrewMember("CAB", "Ena Ramic"),
+                        new CrewMember("SEN", "Nico Verhelst")
+                    ]
+                ),
+                new Flight(
                     new FlightNumber("LX1073"),
                     new DateOnly(2024, 03, 19),
                     new AircraftRegistration("HBJVN"),
@@ -73,8 +93,16 @@ public class FlightPlanningExtractorTests
                     new decimal(1.4),
                     TimeSpan.FromMinutes(44),
                     new decimal(1.7),
-                    new decimal(4.2)
-                ))
+                    new decimal(4.2),
+                     [
+                        new CrewMember("CMD", "Werner Trütsch"),
+                        new CrewMember("COP", "Luca Andrea Marchetti"),
+                        new CrewMember("CAB", "Helen Meier"),
+                        new CrewMember("CAB", "Ena Ramic"),
+                        new CrewMember("SEN", "Nico Verhelst"),
+
+                    ]
+                )
             ]));
     }
 }

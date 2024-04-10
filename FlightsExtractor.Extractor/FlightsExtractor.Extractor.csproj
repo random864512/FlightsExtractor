@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="PdfPig" Version="0.1.8" />
+    <PackageReference Include="Tabula" Version="0.1.3" />
   </ItemGroup>
 
   <ItemGroup>
@@ -15,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="FlightsExtractor.Extractor.Result" Static="True"/>
+    <Using Include="FlightsExtractor.Extractor.Result" Static="True" />
   </ItemGroup>
 
 </Project>

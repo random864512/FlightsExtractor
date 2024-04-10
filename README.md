@@ -47,7 +47,7 @@ starts cli interface
 - [ ] Number of passengers in economy (Y) class
 - [ ] Dry operating weight (DOW)
 - [ ] Dry operating index
-- [ ] Crew and functions (list, number may vary)
+- [x] Crew and functions (list, number may vary)
 
 ### Other
 - [ ] fFix naive Airport registration regex

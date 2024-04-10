@@ -1,9 +1,14 @@
+using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 
 namespace FlightsExtractor.Extractor;
-public record FlightPlanning(IEnumerable<Flight> Flights);
-public record Flight(OperationalFlightPlan OperationalFlightPlan);
-public record OperationalFlightPlan(
+
+public class FileDoesNotExistException : Exception;
+public class FlightPlanningValidationException(string message) : Exception(message);
+
+public record FlightPlanning(ImmutableList<Flight> Flights);
+
+public record Flight(
     FlightNumber FlightNumber,
     DateOnly FlightDate,
     Result<AircraftRegistration> AircraftRegistration,
@@ -15,7 +20,8 @@ public record OperationalFlightPlan(
     Result<decimal> FuelToDestination,
     Result<TimeSpan> TimeToAlternate,
     Result<decimal> FuelToAlternate,
-    Result<decimal> MinimumFuelRequired
+    Result<decimal> MinimumFuelRequired,
+    ImmutableList<CrewMember> CrewMembers
 );
 
 public partial record FlightNumber(string Number)
@@ -51,6 +57,8 @@ public partial record AircraftRegistration(string Value)
 public partial record Route(Result<ICAOAirportCode> From, Result<ICAOAirportCode> To);
 
 public partial record ATCCallSign(string Value);
+
+public record CrewMember(Result<string> function, Result<string> Name);
 
 public partial record ICAOAirportCode(string Value)
 {
