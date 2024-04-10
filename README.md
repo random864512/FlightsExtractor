@@ -1,28 +1,53 @@
 # FlightsExtractor
 
-## Interface
+## CLI
 
 ``dotnet test`` 
 
-starts test 
+starts tests
 
-``dotnet run --project FlightsExtractor.App/FlightsExtractor.App.csproj`` 
+``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -- extract ./FlightsExtractor.Extractor.Tests/SampleFile.pdf`` 
 
-starts cli interface
+build & run CLI app in Debug configuration (with logging level >= traces), extracts sample file places in tests folder
+
+``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -c Release -- extract ./FlightsExtractor.Extractor.Tests/SampleFile.pdf``
+
+build & run CLI app in Release configuration, extracts sample file places in tests folder
 
 ## Project structure (projects)
-### FlightsExtractor.App - boot project, interaction by commandLine
+
+Projects contains three projects, to use this logic in larger system only reference to FlightsExtractor.Extractor is required.
+
+### FlightsExtractor.App
+boot project, interaction by commandLine
+
+#### libraries
+* System.CommandLine
+* Microsoft.Extensions.Logging
+* Microsoft.Extensions.Logging.Console
+* Microsoft.Extensions.DependencyInjection
 ### FlightsExtractor.Extractor - extraction logic
+#### public interfaces
+- ``FlightPlanning`` model
+- ``AddFlightPlanningExtractor(this IServiceCollection serviceCollection)`` to cooperate with MSFT DI
+- ``FlightPlanningExtractorFactory.Create()`` for other non DI scenarios
+- ``IFlightPlanningExtractor`` main extractor interface
+
+#### libraries
+* Microsoft.Extensions.DependencyInjection.Abstractions
+* Microsoft.Extensions.Logging.Abstractions
+* PdfPig
+* Tabula
+
 ### FlightsExtractor.Tests - extraction logic tests
 
-## Used libraries
-* PdfPig
+#### libraries
 * FluentAssertions
 * NUnit
+* Microsoft.Extensions.DependencyInjection
 
 
 ## ToDo
-
 ### Operational Flight Plan
 - [x] Date
 - [x] Aircraft registration
@@ -50,8 +75,10 @@ starts cli interface
 - [x] Crew and functions (list, number may vary)
 
 ### Other
-- [ ] fFix naive Airport registration regex
-- [ ] ATC format validation
+- [ ] Better, not naive paring and validation logic (like ATC format validation)
+- [ ] Additional test cases based on another samples
+- [ ] Extract logging configuration level to appsettings.json / based on build configuration
+- [ ] Error message localization instead of empty strings.
 
 
 

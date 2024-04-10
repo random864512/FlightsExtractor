@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using Tabula;
 using Tabula.Extractors;
 using UglyToad.PdfPig;
@@ -12,16 +13,18 @@ internal record CrewBriefingPage
     ImmutableList<CrewMember> CrewMembers
 );
 
-internal partial class CrewBriefingParser
+internal partial class CrewBriefingParser(ILogger<CrewBriefingParser>? logger = default)
 {
     public IEnumerable<CrewBriefingPage> Parse(PdfDocument document)
     {
+        logger?.LogDebug("Parsing crew briefings");
+
         ObjectExtractor objectExtractor = new(document);
         SpreadsheetExtractionAlgorithm tableExtractor = new();
 
-        var text = document.GetPage(85).Text;
         foreach (var page in document.GetPages().Where(x => x.Text.Contains("Flight Assignment / Flight Crew Briefing") && x.Text.Contains("1of4Page")))
         {
+            logger?.LogTrace("Parsing page {pageNumber}", page.Number);
             var pageArea = objectExtractor.Extract(page.Number);
             var tables = tableExtractor.Extract(pageArea);
             var crewTable = tables.Select(table => ParseCrewTable(table)).FirstOrDefault(x => x != default);

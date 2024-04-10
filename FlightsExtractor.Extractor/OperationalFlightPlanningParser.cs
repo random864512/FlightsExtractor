@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using UglyToad.PdfPig;
 using UglyToad.PdfPig.DocumentLayoutAnalysis.TextExtractor;
 
@@ -21,15 +22,21 @@ internal record OperationalFlightPage(
     Result<decimal> MinimumFuelRequired
 );
 
-internal partial class OperationalFlightPlanningParser
+internal partial class OperationalFlightPlanningParser(ILogger<OperationalFlightPlanningParser>? logger = default)
 {
     public IEnumerable<OperationalFlightPage> Parse(PdfDocument document)
     {
+        logger?.LogDebug("Parsing operational flights");
+
         foreach (var page in document.GetPages())
         {
+            logger?.LogTrace("Parsing page {pageNumber}", page.Number);
+
             var text = ContentOrderTextExtractor.GetText(page);
 
             if (page.Text.Contains("Operational Flight Plan"))
+            {
+                logger?.LogTrace("Planning found on page {pageNumber}", page.Number);
                 yield return new OperationalFlightPage(
                     ParseFlightNumber(text),
                     ParseFlightDate(text),
@@ -45,6 +52,8 @@ internal partial class OperationalFlightPlanningParser
                     ParseFuelToAirport(ParseAlternativeAirdrom1(text), text).Fuel,
                     ParseFuelMin(text).Fuel
                 );
+            }
+
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using UglyToad.PdfPig;
 
 namespace FlightsExtractor.Extractor;
@@ -23,21 +24,26 @@ public interface IFlightPlanningExtractor
 
 internal class FlightPlanningExtractor(
     OperationalFlightPlanningParser operationalFlightPlanningParser,
-    CrewBriefingParser crewBriefingParser)
+    CrewBriefingParser crewBriefingParser,
+    ILogger<FlightPlanningExtractor>? logger = default)
     : IFlightPlanningExtractor
 {
     public FlightPlanning Extract(string file)
     {
+        logger?.LogDebug("Checking if file exists");
         if (!File.Exists(file))
             throw new FileDoesNotExistException();
 
         try
         {
+            logger?.LogDebug("Opening file");
             using var document = PdfDocument.Open(file);
 
+            logger?.LogDebug("Parsing file");
             var operationalFlightPages = operationalFlightPlanningParser.Parse(document).ToImmutableList();
             var crewBriefingPages = crewBriefingParser.Parse(document).ToImmutableList();
 
+            logger?.LogDebug("Validating file");
             var error = Validate(operationalFlightPages, crewBriefingPages);
             if (error != default)
                 throw new FlightPlanningValidationException(error);
