@@ -15,8 +15,9 @@ namespace FlightsExtractor.Extractor;
 
 public interface IFlightPlanningExtractor
 {
-    /// <exception cref="FileDoesNotExistException">When file does not exists</exception>
-    /// <exception cref="FlightPlanningValidationException">When file cannot be parsed due to invalid structure / missing data</exception>
+    /// <exception cref="FileDoesNotExistException">File does not exist</exception>
+    /// <exception cref="FlightPlanningValidationException">File cannot be parsed due to invalid file structure / missing data</exception>
+    /// <exception cref="FlightPlanningExtractionException">File cannot be parsed due to internal error or invalid file format</exception>
     FlightPlanning Extract(string file);
 }
 
@@ -30,33 +31,40 @@ internal class FlightPlanningExtractor(
         if (!File.Exists(file))
             throw new FileDoesNotExistException();
 
-        using var document = PdfDocument.Open(file);
+        try
+        {
+            using var document = PdfDocument.Open(file);
 
-        var operationalFlightPages = operationalFlightPlanningParser.Parse(document).ToImmutableList();
-        var crewBriefingPages = crewBriefingParser.Parse(document).ToImmutableList();
+            var operationalFlightPages = operationalFlightPlanningParser.Parse(document).ToImmutableList();
+            var crewBriefingPages = crewBriefingParser.Parse(document).ToImmutableList();
 
-        var error = Validate(operationalFlightPages, crewBriefingPages);
-        if (error != default)
-            throw new FlightPlanningValidationException(error);
+            var error = Validate(operationalFlightPages, crewBriefingPages);
+            if (error != default)
+                throw new FlightPlanningValidationException(error);
 
-        var flights = operationalFlightPages.Select(plan => (plan, briefing: crewBriefingPages.Single(briefing => briefing.FlightNumber!.Value!.Number.Equals(plan.FlightNumber!.Value!.Number))));
+            var flights = operationalFlightPages.Select(plan => (plan, briefing: crewBriefingPages.Single(briefing => briefing.FlightNumber!.Value!.Number.Equals(plan.FlightNumber!.Value!.Number))));
 
-        return new FlightPlanning(flights.Select(flight =>
-            new Flight(
-                    flight.plan.FlightNumber.Value!,
-                    flight.plan.FlightDate.Value!,
-                    flight.plan.AircraftRegistration,
-                    new Route(flight.plan.From, flight.plan.To),
-                    flight.plan.AlternativeAirdrom1,
-                    flight.plan.AlternativeAirdrom2,
-                    flight.plan.ATCCallSign,
-                    flight.plan.TimeToDestination,
-                    flight.plan.FuelToDestination,
-                    flight.plan.TimeToAlternate,
-                    flight.plan.FuelToAlternate,
-                    flight.plan.MinimumFuelRequired,
-                    flight.briefing.CrewMembers
-            )).ToImmutableList());
+            return new FlightPlanning(flights.Select(flight =>
+                new Flight(
+                        flight.plan.FlightNumber.Value!,
+                        flight.plan.FlightDate.Value!,
+                        flight.plan.AircraftRegistration,
+                        new Route(flight.plan.From, flight.plan.To),
+                        flight.plan.AlternativeAirdrom1,
+                        flight.plan.AlternativeAirdrom2,
+                        flight.plan.ATCCallSign,
+                        flight.plan.TimeToDestination,
+                        flight.plan.FuelToDestination,
+                        flight.plan.TimeToAlternate,
+                        flight.plan.FuelToAlternate,
+                        flight.plan.MinimumFuelRequired,
+                        flight.briefing.CrewMembers
+                )).ToImmutableList());
+        }
+        catch (Exception e) when (e is not FlightPlanningValidationException)
+        {
+            throw new FlightPlanningExtractionException(e);
+        }
     }
 
     private static string? Validate(ImmutableList<OperationalFlightPage> plans, ImmutableList<CrewBriefingPage> briefings)

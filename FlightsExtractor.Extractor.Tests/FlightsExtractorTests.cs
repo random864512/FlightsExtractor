@@ -8,7 +8,7 @@ public class FlightPlanningExtractorTests
     public void ShouldExtractFlightPlanning()
     {
         // Arrange
-        var sut = new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser());
+        var sut = FlightPlanningExtractorFactory.Create();
 
         // Act
         var result = sut.Extract("SampleFile.pdf");
@@ -107,23 +107,19 @@ public class FlightPlanningExtractorTests
 
     [Test]
     public void ShouldThrowWhenFileDoesNotExist() =>
-    new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
-        .Extract("FileThatDoesNotExists.txt"))
+    new Action(() => FlightPlanningExtractorFactory.Create().Extract("FileThatDoesNotExists.txt"))
         .Should()
         .Throw<FileDoesNotExistException>();
 
-
     [Test]
     public void ShouldThrowWhenBriefingPageIsMissing() =>
-        new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
-        .Extract("SampleFileRemovedBriefing.pdf"))
+        new Action(() => FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedBriefing.pdf"))
         .Should()
         .Throw<FlightPlanningValidationException>();
 
     [Test]
     public void ShouldThrowWhenOperationalFlightPlanningPageIsMissing() =>
-        new Action(() => new FlightPlanningExtractor(new OperationalFlightPlanningParser(), new CrewBriefingParser())
-        .Extract("SampleFileRemovedPlanning.pdf"))
+        new Action(() => FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedPlanning.pdf"))
         .Should()
         .Throw<FlightPlanningValidationException>();
 }

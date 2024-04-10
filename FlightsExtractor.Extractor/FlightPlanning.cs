@@ -5,6 +5,7 @@ namespace FlightsExtractor.Extractor;
 
 public class FileDoesNotExistException : Exception;
 public class FlightPlanningValidationException(string message) : Exception(message);
+public class FlightPlanningExtractionException(Exception inner) : Exception(default, inner);
 
 public record FlightPlanning(ImmutableList<Flight> Flights);
 
