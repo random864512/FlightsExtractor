@@ -4,6 +4,7 @@ namespace FlightsExtractor.Extractor.Tests;
 [TestFixture]
 public class ServiceCollectionExtensionsTests
 {
+    [Test]
     public void ShouldAddFlightPlanningExtractorToServiceCollection()
     {
         var serviceCollection = new ServiceCollection();
