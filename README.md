@@ -12,7 +12,7 @@ build & run CLI app in Debug configuration (with logging level >= traces), extra
 
 ``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -c Release -- extract ./FlightsExtractor.Extractor.Tests/SampleFile.pdf``
 
-build & run CLI app in Release configuration, extracts sample file places in tests folder
+build & run CLI app in Release configuration, extracts sample file placed in tests folder
 
 ## Project structure (projects)
 
@@ -27,7 +27,7 @@ boot project, interaction by commandLine
 * Microsoft.Extensions.Logging.Console
 * Microsoft.Extensions.DependencyInjection
 ### FlightsExtractor.Extractor - extraction logic
-#### public interfaces
+
 - ``FlightPlanning`` data model 
 - ``AddFlightPlanningExtractor(this IServiceCollection serviceCollection)`` to cooperate with MSFT DI
 - ``FlightPlanningExtractorFactory.Create()`` for other non DI scenarios
