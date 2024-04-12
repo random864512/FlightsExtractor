@@ -1,18 +1,19 @@
 # FlightsExtractor
 
 ## CLI
+In main repository folder : 
 
 ``dotnet test`` 
 
-starts tests
-
-``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -- extract ./FlightsExtractor.Extractor.Tests/SampleFile.pdf`` 
-
-build & run CLI app in Debug configuration (with logging level >= traces), extracts sample file places in tests folder
+execute tests
 
 ``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -c Release -- extract ./FlightsExtractor.Extractor.Tests/SampleFile.pdf``
 
-build & run CLI app in Release configuration, extracts sample file placed in tests folder
+build & run CLI app in Release configuration and extracts sample file placed in tests folder
+
+``dotnet run --project .\FlightsExtractor.App\FlightsExtractor.App.csproj -c Release -- -h``
+
+build & run CLI app in Release configuration and shows CLI app app
 
 ## Project structure (projects)
 
@@ -28,7 +29,7 @@ boot project, interaction by commandLine
 * Microsoft.Extensions.DependencyInjection
 ### FlightsExtractor.Extractor - extraction logic
 
-- ``FlightPlanning`` data model 
+- ``FlightPlanning + Result<T>`` returned model 
 - ``AddFlightPlanningExtractor(this IServiceCollection serviceCollection)`` to cooperate with MSFT DI
 - ``FlightPlanningExtractorFactory.Create()`` for other non DI scenarios
 - ``IFlightPlanningExtractor`` main extractor interface
