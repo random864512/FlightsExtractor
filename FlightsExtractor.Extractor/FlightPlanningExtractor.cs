@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Microsoft.Extensions.Logging;
+﻿using FlightsExtractor.Extractor.Factories;
 using UglyToad.PdfPig;
 
 namespace FlightsExtractor.Extractor;
@@ -9,9 +8,9 @@ namespace FlightsExtractor.Extractor;
     depending on needs (like passing lib to 3rd parties, public nuget etc.) to completely avoid eventual changes due to implementation details it could look like:
     public interface IFlightPlanningExtractor : IDisposable, IAsyncDisposable
     {
-        Task<FlightPlanning> Extract(string file);
+        Task<FlightPlanning> Extract(string file, CancellationToken token);
     }
-    to avoid breaking changes in case of library switch in the future
+    to avoid breaking changes in case of library switch or update in the future
  */
 
 public interface IFlightPlanningExtractor
@@ -23,8 +22,10 @@ public interface IFlightPlanningExtractor
 }
 
 internal class FlightPlanningExtractor(
-    OperationalFlightPlanningParser operationalFlightPlanningParser,
-    CrewBriefingParser crewBriefingParser,
+    FlightNumberFactory flightNumberFactory,
+    AircraftRegistrationFactory aircraftRegistrationFactory,
+    ICAOAAirportCodeFactory airportCodeFactory,
+    Messages messages,
     ILogger<FlightPlanningExtractor>? logger = default)
     : IFlightPlanningExtractor
 {
@@ -37,35 +38,55 @@ internal class FlightPlanningExtractor(
         try
         {
             logger?.LogDebug("Opening file");
-            using var document = PdfDocument.Open(file);
+            using var document = FlightPlanningDocument.Create(file);
 
-            logger?.LogDebug("Parsing file");
-            var operationalFlightPages = operationalFlightPlanningParser.Parse(document).ToImmutableList();
-            var crewBriefingPages = crewBriefingParser.Parse(document).ToImmutableList();
+            FlightPlanning flightPlanning = new([]);
+            foreach (var planning in document.PlanningPages)
+            {
+                var flightNumber = planning.ParseFlightNumber().ToResult(error: messages.CannotParse("planning flight number")).MapResult(flightNumberFactory.Create);
+                if (!flightNumber.IsSuccess)
+                    throw new FlightPlanningValidationException(flightNumber.Error!);
 
-            logger?.LogDebug("Validating file");
-            var error = Validate(operationalFlightPages, crewBriefingPages);
-            if (error != default)
-                throw new FlightPlanningValidationException(error);
+                var flightDate = planning.ParseFlightDate().ToResult(error: messages.CannotParse("planning flight number"));
+                if (!flightDate.IsSuccess)
+                    throw new FlightPlanningValidationException(flightNumber.Error!);
 
-            var flights = operationalFlightPages.Select(plan => (plan, briefing: crewBriefingPages.Single(briefing => briefing.FlightNumber!.Value!.Number.Equals(plan.FlightNumber!.Value!.Number))));
+                Result<CrewBriefingPage> briefing = document.BriefingPages.FirstOrDefault(x => flightNumber.Value!.Number.Equals(x.ParseCrewTable()?.flightNumber)).ToResult(messages.CannotParse("briefing flight number"));
+                if (!briefing.IsSuccess)
+                    throw new FlightPlanningValidationException(briefing.Error!);
 
-            return new FlightPlanning(flights.Select(flight =>
-                new Flight(
-                        flight.plan.FlightNumber.Value!,
-                        flight.plan.FlightDate.Value!,
-                        flight.plan.AircraftRegistration,
-                        new Route(flight.plan.From, flight.plan.To),
-                        flight.plan.AlternativeAirdrom1,
-                        flight.plan.AlternativeAirdrom2,
-                        flight.plan.ATCCallSign,
-                        flight.plan.TimeToDestination,
-                        flight.plan.FuelToDestination,
-                        flight.plan.TimeToAlternate,
-                        flight.plan.FuelToAlternate,
-                        flight.plan.MinimumFuelRequired,
-                        flight.briefing.CrewMembers
-                )).ToImmutableList());
+                flightPlanning = flightPlanning with
+                {
+                    Flights = [ .. flightPlanning.Flights,
+                    new Flight(
+                        flightNumber!,
+                        flightDate,
+                        planning.ParseAircraftRegistration().ToResult(messages.CannotParse("aircraft registration")).MapResult(aircraftRegistrationFactory.Create),
+                        new Route(
+                            planning.ParseFrom().ToResult(messages.CannotParse("from")).MapResult(airportCodeFactory.Create),
+                            planning.ParseTo().ToResult(messages.CannotParse("to")).MapResult(airportCodeFactory.Create)
+                        ),
+                        planning.ParseAlternativeAirdrom1().ToResult(messages.CannotParse("alternative airdrom 1")).MapResult(airportCodeFactory.Create),
+                        planning.ParseAlternativeAirdrom2().ToResult(messages.CannotParse("alternative airdrom 2")).MapResult(airportCodeFactory.Create),
+                        planning.ParseATCCallSign().ToResult(messages.CannotParse("ATC call sign")),
+                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.CannotParse("time to destination")),
+                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.CannotParse("fuel to destination")),
+                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.CannotParse("time to alternative")),
+                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.CannotParse("fuel to alternative")),
+                        planning.ParseFuelMin().ToResult(messages.CannotParse("fuel min")),
+                        (briefing.Value!.ParseCrewTable()?.crewMembers?.Select(parsed =>
+                            new CrewMember(parsed.function.ToResult(messages.CannotParse("crew member function")),
+                            parsed.name.ToResult(messages.CannotParse("crew member name")))).ToImmutableList()).ToResult(messages.CannotParse("crew member list"))
+                    )
+                    ]
+                };
+            }
+
+            if (flightPlanning.Flights.Count() != document.PlanningPages.Count() ||
+                flightPlanning.Flights.Count() != document.BriefingPages.Count())
+                throw new FlightPlanningValidationException(messages.IncorrectDocumentStructure());
+
+            return flightPlanning;
         }
         catch (Exception e) when (e is not FlightPlanningValidationException)
         {
@@ -73,20 +94,4 @@ internal class FlightPlanningExtractor(
         }
     }
 
-    private static string? Validate(ImmutableList<OperationalFlightPage> plans, ImmutableList<CrewBriefingPage> briefings)
-    {
-        if (plans.Select(x => x.FlightNumber).Any(x => !x.IsSuccess))
-            return "Missing flight number in operational flight page";
-
-        if (plans.Select(x => x.FlightDate).Any(x => !x.IsSuccess))
-            return "Missing flight date in operational flight page";
-
-        if (briefings.Select(x => x.FlightNumber).Any(x => !x.IsSuccess))
-            return "Missing flight number in crew briefing page";
-
-        if (!plans.Select(x => x.FlightNumber.Value!.Number).OrderBy(x => x).SequenceEqual(briefings.Select(x => x.FlightNumber.Value!.Number).OrderBy(x => x)))
-            return "Flights numbers in plan and briefings does not match";
-
-        return default;
-    }
 }

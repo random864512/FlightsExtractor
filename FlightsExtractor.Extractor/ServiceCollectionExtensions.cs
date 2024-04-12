@@ -8,6 +8,8 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddFlightPlanningExtractor(this IServiceCollection serviceCollection) =>
         serviceCollection
             .AddSingleton<IFlightPlanningExtractor, FlightPlanningExtractor>()
-            .AddSingleton<CrewBriefingParser>()
-            .AddSingleton<OperationalFlightPlanningParser>();
+            .AddSingleton<Factories.AircraftRegistrationFactory>()
+            .AddSingleton<Factories.FlightNumberFactory>()
+            .AddSingleton<Factories.ICAOAAirportCodeFactory>()
+            .AddSingleton<Messages>();
 }

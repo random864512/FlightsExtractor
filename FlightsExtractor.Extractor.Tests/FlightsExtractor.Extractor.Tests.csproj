@@ -29,4 +29,10 @@
     <None Update="SampleFileRemovedPlanning.pdf" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
+  
+  <ItemGroup>
+    <Using Include="FlightsExtractor.Extractor.ResultExtensions" Static="True" />
+    <Using Include="NUnit.Framework" />
+  </ItemGroup>
+
 </Project>

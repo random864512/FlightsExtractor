@@ -28,7 +28,7 @@ boot project, interaction by commandLine
 * Microsoft.Extensions.DependencyInjection
 ### FlightsExtractor.Extractor - extraction logic
 #### public interfaces
-- ``FlightPlanning`` model
+- ``FlightPlanning`` data model 
 - ``AddFlightPlanningExtractor(this IServiceCollection serviceCollection)`` to cooperate with MSFT DI
 - ``FlightPlanningExtractorFactory.Create()`` for other non DI scenarios
 - ``IFlightPlanningExtractor`` main extractor interface
@@ -79,6 +79,7 @@ boot project, interaction by commandLine
 - [ ] Additional test cases based on another samples
 - [ ] Extract logging configuration level to appsettings.json / based on build configuration
 - [ ] Error message localization instead of empty strings.
+- [ ] Eventual less naive way to recognize crew briefing page
 
 
 
