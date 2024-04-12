@@ -36,6 +36,7 @@ boot project, interaction by commandLine
 #### libraries
 * Microsoft.Extensions.DependencyInjection.Abstractions
 * Microsoft.Extensions.Logging.Abstractions
+* Microsoft.Extensions.Localization.Abstractions
 * PdfPig
 * Tabula
 
@@ -45,7 +46,6 @@ boot project, interaction by commandLine
 * FluentAssertions
 * NUnit
 * Microsoft.Extensions.DependencyInjection
-
 
 ## ToDo
 ### Operational Flight Plan
@@ -75,11 +75,13 @@ boot project, interaction by commandLine
 - [x] Crew and functions (list, number may vary)
 
 ### Other
-- [ ] Better, not naive paring and validation logic (like ATC format validation)
-- [ ] Additional test cases based on another samples
+- [ ] Connect Crew Briefing page also by Flight date (not only by flight number)
+- [ ] Better, not naive parsing and validation logic (like ATC format validation)
+- [ ] Additional test cases based on another samples of documents (factories etc.)
 - [ ] Extract logging configuration level to appsettings.json / based on build configuration
-- [ ] Error message localization instead of empty strings.
+- [ ] Test localization mechanism
 - [ ] Eventual less naive way to recognize crew briefing page
+- [ ] Better messages about missing fields / warnings
 
 
 

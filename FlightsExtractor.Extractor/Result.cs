@@ -29,4 +29,10 @@ public static class ResultExtensions
 
     internal static U? MapNullable<T, U>(this T? optional, Func<T, U?> map) => optional != null ? map(optional!) : default;
     internal static Result<E> MapResult<T, E>(this Result<T> result, Func<T, Result<E>> map) => result.IsSuccess ? map(result.Value!) : Error<E>(result.Error!);
+    internal static Result<T> OnError<T>(this Result<T> result, Action<string> action)
+    {
+        if (!result.IsSuccess)
+            action(result.Error!);
+        return result;
+    }
 }

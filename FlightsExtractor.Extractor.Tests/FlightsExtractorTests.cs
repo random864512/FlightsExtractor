@@ -17,14 +17,14 @@ public class FlightPlanningExtractorTests
         // Assert
         result
             .Should()
-            .BeEquivalentTo(new FlightPlanning([
+            .BeEquivalentTo(Ok(new FlightPlanning([
                 new Flight(
                     new FlightNumber("LX1612"),
                     new DateOnly(2024,03,19),
                     new AircraftRegistration("HBJVY"),
                     new Route(new ICAOAirportCode("LSZH"), new ICAOAirportCode("LIMC")),
                     new ICAOAirportCode("LIML"),
-                    Error<ICAOAirportCode>("Cannot parse alternative airdrom 2"),
+                    Error<ICAOAirportCode>("Airdrom 2 is not available"),
                     "SWR612Q",
                     TimeSpan.FromMinutes(48),
                     new decimal(1.7),
@@ -45,7 +45,7 @@ public class FlightPlanningExtractorTests
                     new AircraftRegistration("HBJVY"),
                     new Route(new ICAOAirportCode("LIMC"), new ICAOAirportCode("LSZH")),
                     new ICAOAirportCode("LFSB"),
-                    Error<ICAOAirportCode>("Cannot parse alternative airdrom 2"),
+                    Error<ICAOAirportCode>("Airdrom 2 is not available"),
                     "SWR2TM",
                     TimeSpan.FromMinutes(48),
                     new decimal(1.7),
@@ -66,7 +66,7 @@ public class FlightPlanningExtractorTests
                     new AircraftRegistration("HBJVN"),
                     new Route(new ICAOAirportCode("LSZH"), new ICAOAirportCode("EDDF")),
                     new ICAOAirportCode("EDDK"),
-                    Error<ICAOAirportCode>("Cannot parse alternative airdrom 2"),
+                    Error<ICAOAirportCode>("Airdrom 2 is not available"),
                     "SWR2ET",
                     TimeSpan.FromMinutes(57),
                     new decimal(1.9),
@@ -87,7 +87,7 @@ public class FlightPlanningExtractorTests
                     new AircraftRegistration("HBJVN"),
                     new Route(new ICAOAirportCode("EDDF"), new ICAOAirportCode("LSZH")),
                     new ICAOAirportCode("LFSB"),
-                    Error<ICAOAirportCode>("Cannot parse alternative airdrom 2"),
+                    Error<ICAOAirportCode>("Airdrom 2 is not available"),
                     "SWR890M",
                     TimeSpan.FromMinutes(40),
                     new decimal(1.4),
@@ -102,7 +102,7 @@ public class FlightPlanningExtractorTests
                         new CrewMember("SEN", "Nico Verhelst")
                     )
                 )
-            ]));
+            ])));
     }
 
     [Test]
@@ -112,14 +112,14 @@ public class FlightPlanningExtractorTests
         .Throw<FileDoesNotExistException>();
 
     [Test]
-    public void ShouldThrowWhenBriefingPageIsMissing() =>
-        new Action(() => FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedBriefing.pdf"))
-        .Should()
-        .Throw<FlightPlanningValidationException>();
+    public void ShouldReturnErrorWhenBriefingPageIsMissing() =>
+        FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedBriefing.pdf")
+            .Should()
+            .Be(Error<FlightPlanning>("Briefing page is missing"));
 
     [Test]
-    public void ShouldThrowWhenOperationalFlightPlanningPageIsMissing() =>
-        new Action(() => FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedPlanning.pdf"))
-        .Should()
-        .Throw<FlightPlanningValidationException>();
+    public void ShouldReturnErrorWhenOperationalFlightPlanningPageIsMissing() =>
+        FlightPlanningExtractorFactory.Create().Extract("SampleFileRemovedPlanning.pdf")
+            .Should()
+            .Be(Error<FlightPlanning>("Incorrect document structure"));
 }

@@ -22,8 +22,8 @@ public record Flight(
     Result<ImmutableList<CrewMember>> CrewMembers
 );
 
-public partial record FlightNumber(string Number);
-public partial record ICAOAirportCode(string Value);
-public partial record AircraftRegistration(string Value);
-public partial record Route(Result<ICAOAirportCode> From, Result<ICAOAirportCode> To);
+public record FlightNumber(string Number);
+public record ICAOAirportCode(string Value);
+public record AircraftRegistration(string Value);
+public record Route(Result<ICAOAirportCode> From, Result<ICAOAirportCode> To);
 public record CrewMember(Result<string> Function, Result<string> Name);

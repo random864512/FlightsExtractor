@@ -1,3 +1,4 @@
+using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 namespace FlightsExtractor.Extractor.Tests;
 
@@ -12,6 +13,6 @@ public class ServiceCollectionExtensionsTests
         using var serviceProvider = serviceCollection.BuildServiceProvider(validateScopes: true);
 
         var extractor = serviceProvider.GetRequiredService<IFlightPlanningExtractor>();
-        extractor.Extract("SampleFile.pdf");
+        extractor.Extract("SampleFile.pdf").IsSuccess.Should().BeTrue();
     }
 }

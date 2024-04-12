@@ -5,7 +5,7 @@ internal partial class FlightNumberFactory(Messages messages)
     public Result<FlightNumber> Create(string value)
     {
         if (!FlightNumberRegex().IsMatch(value))
-            return Error<FlightNumber>(messages.IncorrectFormat("flight number", value, "[AA0000]"));
+            return Error<FlightNumber>(messages.FlightNumberIsInIncorrectFormat("flight number", "[AA0000]"));
 
         return new FlightNumber(value);
     }
@@ -19,7 +19,7 @@ internal partial class AircraftRegistrationFactory(Messages messages)
     public Result<AircraftRegistration> Create(string value)
     {
         if (!AircraftRegistrationRegex().IsMatch(value))
-            return Error<AircraftRegistration>(messages.IncorrectFormat("aircraft registration", value));
+            return Error<AircraftRegistration>(messages.AircraftRegistrationInIncorrectFormat(value));
 
         return new AircraftRegistration(value);
     }

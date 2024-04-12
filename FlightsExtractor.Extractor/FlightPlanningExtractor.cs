@@ -16,9 +16,8 @@ namespace FlightsExtractor.Extractor;
 public interface IFlightPlanningExtractor
 {
     /// <exception cref="FileDoesNotExistException">File does not exist</exception>
-    /// <exception cref="FlightPlanningValidationException">File cannot be parsed due to invalid file structure / missing data</exception>
     /// <exception cref="FlightPlanningExtractionException">File cannot be parsed due to internal error or invalid file format</exception>
-    FlightPlanning Extract(string file);
+    Result<FlightPlanning> Extract(string file);
 }
 
 internal class FlightPlanningExtractor(
@@ -29,7 +28,7 @@ internal class FlightPlanningExtractor(
     ILogger<FlightPlanningExtractor>? logger = default)
     : IFlightPlanningExtractor
 {
-    public FlightPlanning Extract(string file)
+    public Result<FlightPlanning> Extract(string file)
     {
         logger?.LogDebug("Checking if file exists");
         if (!File.Exists(file))
@@ -40,20 +39,20 @@ internal class FlightPlanningExtractor(
             logger?.LogDebug("Opening file");
             using var document = FlightPlanningDocument.Create(file);
 
-            FlightPlanning flightPlanning = new([]);
+            FlightPlanning flightPlanning = new(Flights: []);
             foreach (var planning in document.PlanningPages)
             {
-                var flightNumber = planning.ParseFlightNumber().ToResult(error: messages.CannotParse("planning flight number")).MapResult(flightNumberFactory.Create);
+                var flightNumber = planning.ParseFlightNumber().ToResult(error: messages.FlightNumberIsNotAvailable).MapResult(flightNumberFactory.Create);
                 if (!flightNumber.IsSuccess)
-                    throw new FlightPlanningValidationException(flightNumber.Error!);
+                    return Error<FlightPlanning>(flightNumber.Error!).OnError(LogWarn);
 
-                var flightDate = planning.ParseFlightDate().ToResult(error: messages.CannotParse("planning flight number"));
+                var flightDate = planning.ParseFlightDate().ToResult(error: messages.FlightDateIsNotAvailable);
                 if (!flightDate.IsSuccess)
-                    throw new FlightPlanningValidationException(flightNumber.Error!);
+                    return Error<FlightPlanning>(flightNumber.Error!).OnError(LogWarn);
 
-                Result<CrewBriefingPage> briefing = document.BriefingPages.FirstOrDefault(x => flightNumber.Value!.Number.Equals(x.ParseCrewTable()?.flightNumber)).ToResult(messages.CannotParse("briefing flight number"));
+                var briefing = document.BriefingPages.FirstOrDefault(x => flightNumber.Value!.Number.Equals(x.ParseCrewTable()?.flightNumber)).ToResult(messages.BriefingPageIsMissing);
                 if (!briefing.IsSuccess)
-                    throw new FlightPlanningValidationException(briefing.Error!);
+                    return Error<FlightPlanning>(briefing.Error!).OnError(LogWarn);
 
                 flightPlanning = flightPlanning with
                 {
@@ -61,37 +60,38 @@ internal class FlightPlanningExtractor(
                     new Flight(
                         flightNumber!,
                         flightDate,
-                        planning.ParseAircraftRegistration().ToResult(messages.CannotParse("aircraft registration")).MapResult(aircraftRegistrationFactory.Create),
+                        planning.ParseAircraftRegistration().ToResult(messages.AircraftRegistrationIsNotAvailable).MapResult(aircraftRegistrationFactory.Create).OnError(LogWarn),
                         new Route(
-                            planning.ParseFrom().ToResult(messages.CannotParse("from")).MapResult(airportCodeFactory.Create),
-                            planning.ParseTo().ToResult(messages.CannotParse("to")).MapResult(airportCodeFactory.Create)
+                            planning.ParseFrom().ToResult(messages.FromIsNotAvailable).MapResult(airportCodeFactory.Create).OnError(LogWarn),
+                            planning.ParseTo().ToResult(messages.ToIsNotAvailable).MapResult(airportCodeFactory.Create).OnError(LogWarn)
                         ),
-                        planning.ParseAlternativeAirdrom1().ToResult(messages.CannotParse("alternative airdrom 1")).MapResult(airportCodeFactory.Create),
-                        planning.ParseAlternativeAirdrom2().ToResult(messages.CannotParse("alternative airdrom 2")).MapResult(airportCodeFactory.Create),
-                        planning.ParseATCCallSign().ToResult(messages.CannotParse("ATC call sign")),
-                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.CannotParse("time to destination")),
-                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.CannotParse("fuel to destination")),
-                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.CannotParse("time to alternative")),
-                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.CannotParse("fuel to alternative")),
-                        planning.ParseFuelMin().ToResult(messages.CannotParse("fuel min")),
+                        planning.ParseAlternativeAirdrom1().ToResult(messages.Airdrom1IsNotAvailable).MapResult(airportCodeFactory.Create).OnError(LogWarn),
+                        planning.ParseAlternativeAirdrom2().ToResult(messages.Airdrom2IsNotAvailable).MapResult(airportCodeFactory.Create).OnError(LogWarn),
+                        planning.ParseATCCallSign().ToResult(messages.ATCCallSignIsNotAvailable).OnError(LogWarn),
+                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.TimeToDestinationIsNoTAvailable).OnError(LogWarn),
+                        (planning.ParseTo().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.FuelToDestinationIsNotAvailable).OnError(LogWarn),
+                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Time).ToResult(messages.TimeToAlternativeIsNotAvailable).OnError(LogWarn),
+                        (planning.ParseAlternativeAirdrom1().MapNullable(planning.ParseFuelToAirport)?.Fuel).ToResult(messages.FuelMinIsNotAvailable).OnError(LogWarn),
+                        planning.ParseFuelMin().ToResult(messages.FuelMinIsNotAvailable).OnError(LogWarn),
                         (briefing.Value!.ParseCrewTable()?.crewMembers?.Select(parsed =>
-                            new CrewMember(parsed.function.ToResult(messages.CannotParse("crew member function")),
-                            parsed.name.ToResult(messages.CannotParse("crew member name")))).ToImmutableList()).ToResult(messages.CannotParse("crew member list"))
+                            new CrewMember(parsed.function.ToResult(messages.CrewMemberFunctionIsNotAvailable).OnError(LogWarn),
+                            parsed.name.ToResult(messages.CrewMembersNameIsNotAvailable).OnError(LogWarn))).ToImmutableList()).ToResult(messages.CrewMembersListIsNotAvailable).OnError(LogWarn)
                     )
                     ]
                 };
             }
 
-            if (flightPlanning.Flights.Count() != document.PlanningPages.Count() ||
-                flightPlanning.Flights.Count() != document.BriefingPages.Count())
-                throw new FlightPlanningValidationException(messages.IncorrectDocumentStructure());
+            if (flightPlanning.Flights.Count != document.PlanningPages.Count ||
+                flightPlanning.Flights.Count != document.BriefingPages.Count)
+                return Error<FlightPlanning>(messages.IncorrectDocumentStructure()).OnError(LogWarn);
 
             return flightPlanning;
         }
-        catch (Exception e) when (e is not FlightPlanningValidationException)
+        catch (Exception e)
         {
             throw new FlightPlanningExtractionException(e);
         }
     }
 
+    private void LogWarn(string msg) => logger?.LogDebug(msg);
 }

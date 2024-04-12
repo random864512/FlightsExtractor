@@ -6,13 +6,8 @@ using FlightsExtractor.Extractor;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
-LogLevel minimumLogLevel = LogLevel.Information;
-#if DEBUG
-minimumLogLevel = LogLevel.Trace;
-#endif
-
 using var serviceProvider = new ServiceCollection()
-                                    .AddLogging(builder => builder.AddConsole().SetMinimumLevel(minimumLogLevel))
+                                    .AddLogging(builder => builder.AddConsole().SetMinimumLevel(LogLevel.Debug))
                                     .AddFlightPlanningExtractor()
                                     .BuildServiceProvider();
 
@@ -27,10 +22,6 @@ command.SetHandler((FileInfo file) =>
         var flightPlanning = serviceProvider.GetRequiredService<IFlightPlanningExtractor>();
         var extracted = flightPlanning.Extract(file.FullName);
         Console.WriteLine(JsonSerializer.Serialize(extracted, new JsonSerializerOptions { WriteIndented = true }));
-    }
-    catch (FlightPlanningValidationException e)
-    {
-        Console.WriteLine($"Invalid file structure : {e.Message}");
     }
     catch (FileDoesNotExistException)
     {
