@@ -1,5 +1,4 @@
 ﻿using FlightsExtractor.Extractor.Factories;
-using UglyToad.PdfPig;
 
 namespace FlightsExtractor.Extractor;
 
@@ -8,7 +7,7 @@ namespace FlightsExtractor.Extractor;
     depending on needs (like passing lib to 3rd parties, public nuget etc.) to completely avoid eventual changes due to implementation details it could look like:
     public interface IFlightPlanningExtractor : IDisposable, IAsyncDisposable
     {
-        Task<FlightPlanning> Extract(string file, CancellationToken token);
+        Task<Result<FlightPlanning>> Extract(string file, CancellationToken token);
     }
     to avoid breaking changes in case of library switch or update in the future
  */
